@@ -1,0 +1,10 @@
+import {readFile,mkdir,writeFile} from 'node:fs/promises';
+import vm from 'node:vm';
+const html=await readFile(new URL('./index.html',import.meta.url),'utf8');
+const scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
+if(scripts.length!==1)throw Error('Expected one self-contained application script.');
+new vm.Script(scripts[0][1]);
+if(/<script[^>]+src=|<link[^>]+rel="stylesheet"/.test(html))throw Error('Unexpected external application asset.');
+await mkdir(new URL('./dist/',import.meta.url),{recursive:true});
+await writeFile(new URL('./dist/index.html',import.meta.url),html);
+console.log('Built dist/index.html — self-contained application, syntax checked.');
